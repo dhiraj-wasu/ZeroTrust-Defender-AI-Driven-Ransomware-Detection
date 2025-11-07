@@ -1,0 +1,34 @@
+/* Additional CSS styles for the admin console */
+.connected { color: #059669; }
+.disconnected { color: #dc2626; }
+.critical { background-color: #fef2f2; border-left: 4px solid #dc2626; }
+.high { background-color: #fffbeb; border-left: 4px solid #d97706; }
+.medium { background-color: #f0f9ff; border-left: 4px solid #2563eb; }
+
+.incident-card {
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.incident-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.metric-card {
+    text-align: center;
+    padding: 1.5rem;
+}
+
+.metric-value {
+    font-size: 2.5rem;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+}
+
+.metric-label {
+    color: #6b7280;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}

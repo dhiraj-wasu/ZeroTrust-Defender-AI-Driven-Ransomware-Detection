@@ -1,0 +1,70 @@
+# -------------------------
+# Python & Virtual Envs
+# -------------------------
+venv/
+*/venv/
+.env
+*.env
+
+# Byte-compiled / cache
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+
+# Virtual environment folders (Windows, Linux, macOS)
+env/
+ENV/
+.venv/
+.Python
+
+# Distribution / Packaging
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Logs & Runtime Data
+*.log
+logs/
+*/logs/
+data/logs/
+
+# Backup & Generated Data
+backups/
+*/backups/
+data/backups/
+
+# ML Models & training artifacts
+models/
+*/models/
+*.sav
+*.pkl
+*.h5
+
+# IDE & OS generated files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.tmp
+*.bak
+
+# FastAPI / Uvicorn
+*.sqlite3
+instance/
+*.db
+
+# Node / Web Assets (if frontend added)
+node_modules/
+npm-debug.log*
+
+# Pytest / Coverage
+htmlcov/
+.coverage
+.coverage.*
+.cache
+pytest_cache/
+.pytest_cache/

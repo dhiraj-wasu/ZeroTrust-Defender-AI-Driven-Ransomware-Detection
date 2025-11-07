@@ -1,0 +1,218 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Incident Management</h1>
+    <div>
+        <button class="btn btn-primary" onclick="refreshIncidents()">
+            <i class="fas fa-sync-alt"></i> Refresh
+        </button>
+        <button class="btn btn-success" onclick="exportIncidents()">
+            <i class="fas fa-download"></i> Export
+        </button>
+    </div>
+</div>
+
+<!-- Incident Statistics -->
+<div class="row mb-4">
+    <div class="col-xl-3 col-md-6">
+        <div class="card bg-danger text-white shadow">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-uppercase mb-1">
+                            Critical Incidents
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold">{{ incidents_by_severity.critical|length }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-skull-crossbones fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="card bg-warning text-white shadow">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-uppercase mb-1">
+                            High Incidents
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold">{{ incidents_by_severity.high|length }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-exclamation-triangle fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="card bg-info text-white shadow">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-uppercase mb-1">
+                            Medium Incidents
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold">{{ incidents_by_severity.medium|length }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-info-circle fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="card bg-secondary text-white shadow">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-uppercase mb-1">
+                            Total Incidents
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold">{{ total_count }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-list fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Incidents Table -->
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">All Incidents (Last 7 Days)</h6>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover" id="incidentsTable">
+                        <thead class="thead-light">
+                            <tr>
+                                <th>Time</th>
+                                <th>Incident ID</th>
+                                <th>Agent</th>
+                                <th>Threat Level</th>
+                                <th>Malware Process</th>
+                                <th>Confidence</th>
+                                <th>Actions Taken</th>
+                                <th>Details</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for incident in incidents %}
+                            <tr class="{% if incident.threat_level == 'critical' %}incident-critical{% elif incident.threat_level == 'high' %}incident-high{% elif incident.threat_level == 'medium' %}incident-medium{% endif %}">
+                                <td>{{ incident.timestamp[:16] }}</td>
+                                <td><code>{{ incident.incident_id or 'N/A' }}</code></td>
+                                <td>{{ incident.agent_id }}</td>
+                                <td>
+                                    <span class="badge {% if incident.threat_level == 'critical' %}bg-danger{% elif incident.threat_level == 'high' %}bg-warning{% elif incident.threat_level == 'medium' %}bg-info{% else %}bg-secondary{% endif %}">
+                                        {{ incident.threat_level.upper() }}
+                                    </span>
+                                </td>
+                                <td>{{ incident.malware_process or 'Unknown' }}</td>
+                                <td>
+                                    <div class="progress" style="height: 20px;">
+                                        <div class="progress-bar {% if incident.detection_confidence > 0.8 %}bg-success{% elif incident.detection_confidence > 0.6 %}bg-warning{% else %}bg-danger{% endif %}" 
+                                             role="progressbar" 
+                                             style="width: {{ incident.detection_confidence * 100 }}%"
+                                             aria-valuenow="{{ incident.detection_confidence * 100 }}" 
+                                             aria-valuemin="0" 
+                                             aria-valuemax="100">
+                                            {{ "%.1f"|format(incident.detection_confidence * 100) }}%
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    {% if incident.actions_taken %}
+                                        {% for action in incident.actions_taken %}
+                                        <span class="badge bg-primary me-1">{{ action }}</span>
+                                        {% endfor %}
+                                    {% else %}
+                                        <span class="text-muted">No actions</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-info" onclick="viewIncidentDetails('{{ incident.incident_id }}')">
+                                        <i class="fas fa-search"></i> View
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Incident Details Modal -->
+<div class="modal fade" id="incidentModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Incident Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="incidentDetails">
+                <!-- Details will be loaded here -->
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function viewIncidentDetails(incidentId) {
+    fetch(`/api/v1/incidents/${incidentId}`)
+        .then(response => response.json())
+        .then(data => {
+            const modalBody = document.getElementById('incidentDetails');
+            modalBody.innerHTML = `
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Basic Information</h6>
+                        <p><strong>Incident ID:</strong> ${data.incident_id}</p>
+                        <p><strong>Agent:</strong> ${data.agent_id}</p>
+                        <p><strong>Threat Level:</strong> <span class="badge bg-danger">${data.threat_level}</span></p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Detection Details</h6>
+                        <p><strong>Malware Process:</strong> ${data.malware_process || 'Unknown'}</p>
+                        <p><strong>Confidence:</strong> ${(data.detection_confidence * 100).toFixed(1)}%</p>
+                        <p><strong>Timestamp:</strong> ${data.timestamp}</p>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <h6>Actions Taken</h6>
+                    <div>
+                        ${data.actions_taken ? data.actions_taken.map(action => 
+                            `<span class="badge bg-success me-1">${action}</span>`
+                        ).join('') : '<span class="text-muted">No actions recorded</span>'}
+                    </div>
+                </div>
+            `;
+            new bootstrap.Modal(document.getElementById('incidentModal')).show();
+        });
+}
+
+function refreshIncidents() {
+    location.reload();
+}
+
+function exportIncidents() {
+    // Implement export functionality
+    alert('Export feature coming soon!');
+}
+</script>
+{% endblock %}

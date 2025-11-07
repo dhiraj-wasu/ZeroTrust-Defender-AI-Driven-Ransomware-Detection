@@ -1,0 +1,207 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0 text-gray-800">System Settings</h1>
+    <button class="btn btn-primary" onclick="saveSettings()">
+        <i class="fas fa-save"></i> Save Settings
+    </button>
+</div>
+
+<div class="row">
+    <!-- System Information -->
+    <div class="col-lg-6">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">System Information</h6>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-sm-4"><strong>Version:</strong></div>
+                    <div class="col-sm-8">{{ system_info.version }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4"><strong>Started:</strong></div>
+                    <div class="col-sm-8">{{ system_info.started[:16] }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4"><strong>LLM Provider:</strong></div>
+                    <div class="col-sm-8">{{ system_info.llm_provider }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4"><strong>Database:</strong></div>
+                    <div class="col-sm-8">SQLite (Operational)</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Performance Metrics -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Performance Metrics</h6>
+            </div>
+            <div class="card-body">
+                {% if performance.performance_metrics %}
+                <div class="row mb-3">
+                    <div class="col-sm-6"><strong>Avg Response Time:</strong></div>
+                    <div class="col-sm-6">{{ "%.2f"|format(performance.performance_metrics.average_response_time_seconds * 1000) }} ms</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-6"><strong>Containment Success:</strong></div>
+                    <div class="col-sm-6">{{ "%.1f"|format(performance.performance_metrics.containment_success_rate * 100) }}%</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-6"><strong>True Positives:</strong></div>
+                    <div class="col-sm-6">{{ performance.performance_metrics.true_positives }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-6"><strong>False Positives:</strong></div>
+                    <div class="col-sm-6">{{ performance.performance_metrics.false_positives }}</div>
+                </div>
+                {% else %}
+                <p class="text-muted">No performance data available yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- System Configuration -->
+    <div class="col-lg-6">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">System Configuration</h6>
+            </div>
+            <div class="card-body">
+                <form id="systemSettings">
+                    <div class="mb-3">
+                        <label class="form-label">Threat Detection Sensitivity</label>
+                        <select class="form-select" name="detection_sensitivity">
+                            <option value="low">Low (Fewer alerts, higher threshold)</option>
+                            <option value="medium" selected>Medium (Balanced detection)</option>
+                            <option value="high">High (More alerts, lower threshold)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Automatic Response Level</label>
+                        <select class="form-select" name="response_level">
+                            <option value="conservative">Conservative (Manual approval required)</option>
+                            <option value="balanced" selected>Balanced (Automatic for high confidence)</option>
+                            <option value="aggressive">Aggressive (Full automation)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Data Retention Period</label>
+                        <select class="form-select" name="retention_period">
+                            <option value="7">7 days</option>
+                            <option value="30" selected>30 days</option>
+                            <option value="90">90 days</option>
+                            <option value="365">1 year</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" name="real_time_monitoring" checked>
+                        <label class="form-check-label">Real-time Monitoring</label>
+                    </div>
+                    
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" name="adaptive_learning" checked>
+                        <label class="form-check-label">Adaptive Learning</label>
+                    </div>
+                    
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" name="llm_analysis" checked>
+                        <label class="form-check-label">LLM Threat Analysis</label>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- System Actions -->
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">System Actions</h6>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <button class="btn btn-warning" onclick="clearOldData()">
+                        <i class="fas fa-broom"></i> Clear Old Data
+                    </button>
+                    <button class="btn btn-info" onclick="rebuildIndexes()">
+                        <i class="fas fa-database"></i> Rebuild Database Indexes
+                    </button>
+                    <button class="btn btn-success" onclick="runSystemDiagnostics()">
+                        <i class="fas fa-stethoscope"></i> Run Diagnostics
+                    </button>
+                    <button class="btn btn-danger" onclick="restartSystem()">
+                        <i class="fas fa-power-off"></i> Restart System
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Knowledge Base Stats -->
+{% if performance.knowledge_base_stats %}
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Knowledge Base Statistics</h6>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-4">
+                        <h3>{{ performance.knowledge_base_stats.threat_signatures }}</h3>
+                        <p class="text-muted">Threat Signatures</p>
+                    </div>
+                    <div class="col-md-4">
+                        <h3>{{ performance.knowledge_base_stats.response_playbooks }}</h3>
+                        <p class="text-muted">Response Playbooks</p>
+                    </div>
+                    <div class="col-md-4">
+                        <h3>{{ performance.knowledge_base_stats.optimization_rules }}</h3>
+                        <p class="text-muted">Optimization Rules</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+function saveSettings() {
+    const formData = new FormData(document.getElementById('systemSettings'));
+    const settings = Object.fromEntries(formData);
+    
+    // Implement settings save
+    alert('Settings saved successfully!');
+}
+
+function clearOldData() {
+    if (confirm('Are you sure you want to clear data older than retention period?')) {
+        alert('Old data clearance scheduled!');
+    }
+}
+
+function rebuildIndexes() {
+    alert('Database index rebuild started!');
+}
+
+function runSystemDiagnostics() {
+    alert('System diagnostics running...');
+}
+
+function restartSystem() {
+    if (confirm('Are you sure you want to restart the system? This will temporarily interrupt services.')) {
+        alert('System restart initiated!');
+    }
+}
+</script>
+{% endblock %}

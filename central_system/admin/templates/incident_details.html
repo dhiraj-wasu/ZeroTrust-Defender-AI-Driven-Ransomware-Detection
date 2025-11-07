@@ -1,0 +1,213 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Incident Details</h1>
+    <a href="/admin/incidents" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Back to Incidents
+    </a>
+</div>
+
+<!-- Incident Summary -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Incident Summary</h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Incident ID:</strong> <code>{{ incident.incident_id }}</code></p>
+                        <p><strong>Agent:</strong> {{ incident.agent_id }}</p>
+                        <p><strong>Threat Level:</strong> 
+                            <span class="badge {% if incident.threat_level == 'critical' %}bg-danger{% elif incident.threat_level == 'high' %}bg-warning{% elif incident.threat_level == 'medium' %}bg-info{% else %}bg-secondary{% endif %}">
+                                {{ incident.threat_level.upper() }}
+                            </span>
+                        </p>
+                        <p><strong>Malware Process:</strong> {{ incident.malware_process or 'Unknown' }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Detection Confidence:</strong> 
+                            <div class="progress" style="height: 20px;">
+                                <div class="progress-bar {% if incident.detection_confidence > 0.8 %}bg-success{% elif incident.detection_confidence > 0.6 %}bg-warning{% else %}bg-danger{% endif %}" 
+                                     style="width: {{ incident.detection_confidence * 100 }}%">
+                                    {{ "%.1f"|format(incident.detection_confidence * 100) }}%
+                                </div>
+                            </div>
+                        </p>
+                        <p><strong>Timestamp:</strong> {{ incident.timestamp[:16] }}</p>
+                        <p><strong>Status:</strong> {{ incident.status }}</p>
+                    </div>
+                </div>
+                
+                <!-- Actions Taken -->
+                {% if incident.actions_taken %}
+                <div class="mt-3">
+                    <h6>Immediate Actions Taken:</h6>
+                    <div>
+                        {% for action in incident.actions_taken %}
+                        <span class="badge bg-success me-1">{{ action }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Processing Timeline -->
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Processing Timeline</h6>
+            </div>
+            <div class="card-body">
+                {% if processing_logs %}
+                <div class="timeline">
+                    {% for log in processing_logs %}
+                    <div class="timeline-item {% if log.step_name == 'PROCESSING_ERROR' %}timeline-item-error{% endif %}">
+                        <div class="timeline-marker">
+                            {% if log.step_name == 'ALERT_RECEIVED' %}
+                            <i class="fas fa-bell text-primary"></i>
+                            {% elif log.step_name == 'FORENSIC_CORRELATION' %}
+                            <i class="fas fa-search text-info"></i>
+                            {% elif log.step_name == 'LLM_ANALYSIS' %}
+                            <i class="fas fa-brain text-warning"></i>
+                            {% elif log.step_name == 'RESPONSE_COORDINATION' %}
+                            <i class="fas fa-shield-alt text-success"></i>
+                            {% elif log.step_name == 'ADAPTIVE_LEARNING' %}
+                            <i class="fas fa-graduation-cap text-purple"></i>
+                            {% else %}
+                            <i class="fas fa-cog text-secondary"></i>
+                            {% endif %}
+                        </div>
+                        <div class="timeline-content">
+                            <h6 class="mb-1">{{ log.step_name.replace('_', ' ').title() }}</h6>
+                            <small class="text-muted">{{ log.timestamp[:16] }}</small>
+                            <div class="mt-2">
+                                {% for key, value in log.step_data.items() %}
+                                <span class="badge bg-light text-dark me-1">{{ key }}: {{ value }}</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="fas fa-info-circle fa-2x text-muted mb-3"></i>
+                    <p class="text-muted">No processing logs available for this incident.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Forensic Data -->
+{% if incident.forensic_data %}
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Forensic Data</h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>File Access Patterns</h6>
+                        <ul>
+                            <li>Files Modified: {{ incident.forensic_data.file_access_patterns.files_modified or 0 }}</li>
+                            <li>Encryption Detected: {{ incident.forensic_data.file_access_patterns.encryption_detected }}</li>
+                            <li>Ransom Note Found: {{ incident.forensic_data.file_access_patterns.ransom_note_found }}</li>
+                            {% if incident.forensic_data.file_access_patterns.extensions_changed %}
+                            <li>Extensions Changed: {{ incident.forensic_data.file_access_patterns.extensions_changed|join(', ') }}</li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Network Activity</h6>
+                        <p>Connections: {{ incident.forensic_data.network_connections|length }}</p>
+                        {% if incident.forensic_data.network_connections %}
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Remote Host</th>
+                                        <th>Protocol</th>
+                                        <th>Direction</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for conn in incident.forensic_data.network_connections %}
+                                    <tr>
+                                        <td>{{ conn.remote_host }}</td>
+                                        <td><span class="badge bg-info">{{ conn.protocol }}</span></td>
+                                        <td><span class="badge {% if conn.direction == 'outbound' %}bg-warning{% else %}bg-success{% endif %}">{{ conn.direction }}</span></td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Process Tree -->
+                {% if incident.forensic_data.process_tree %}
+                <div class="mt-3">
+                    <h6>Process Tree</h6>
+                    <div class="bg-light p-3 rounded">
+                        <ul class="list-unstyled mb-0">
+                            {% for process in incident.forensic_data.process_tree %}
+                            <li><i class="fas fa-cog me-2 text-primary"></i><code>{{ process }}</code></li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block styles %}
+<style>
+.timeline {
+    position: relative;
+    padding-left: 30px;
+}
+.timeline-item {
+    position: relative;
+    margin-bottom: 20px;
+    padding-left: 30px;
+}
+.timeline-marker {
+    position: absolute;
+    left: -15px;
+    top: 0;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: #f8f9fc;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #e3e6f0;
+}
+.timeline-content {
+    background: #f8f9fc;
+    padding: 15px;
+    border-radius: 5px;
+    border-left: 4px solid #4e73df;
+}
+.timeline-item-error .timeline-content {
+    border-left-color: #e74a3b;
+}
+</style>
+{% endblock %}  

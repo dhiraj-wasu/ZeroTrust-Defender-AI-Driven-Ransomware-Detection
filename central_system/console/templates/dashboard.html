@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Central Intelligence System - Admin Console</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --danger: #dc2626;
+            --warning: #d97706;
+            --success: #059669;
+            --gray: #6b7280;
+            --light-bg: #f8fafc;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--light-bg);
+            color: #1f2937;
+        }
+        
+        .navbar {
+            background: white;
+            border-bottom: 1px solid #e5e7eb;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .nav-brand {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary);
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+        }
+        
+        .nav-link {
+            text-decoration: none;
+            color: var(--gray);
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            transition: all 0.2s;
+        }
+        
+        .nav-link.active {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border: 1px solid #e5e7eb;
+        }
+        
+        .card-header {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+        
+        .stat-card {
+            text-align: center;
+            padding: 1rem;
+            border-radius: 0.375rem;
+            background: var(--light-bg);
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-label {
+            color: var(--gray);
+            font-size: 0.875rem;
+        }
+        
+        .critical { color: var(--danger); }
+        .warning { color: var(--warning); }
+        .success { color: var(--success); }
+        .info { color: var(--primary); }
+        
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .table th, .table td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .table th {
+            background: var(--light-bg);
+            font-weight: 600;
+        }
+        
+        .badge {
+            padding: 0.25rem 0.5rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        
+        .badge-critical { background: #fee2e2; color: var(--danger); }
+        .badge-high { background: #ffedd5; color: var(--warning); }
+        .badge-medium { background: #fef3c7; color: #d97706; }
+        .badge-low { background: #dcfce7; color: var(--success); }
+        
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-warning { background: var(--warning); color: white; }
+        
+        .btn:hover { opacity: 0.9; }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            background: white;
+            margin: 2rem auto;
+            padding: 2rem;
+            border-radius: 0.5rem;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .tab-container {
+            margin-top: 1rem;
+        }
+        
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid #e5e7eb;
+            margin-bottom: 1rem;
+        }
+        
+        .tab {
+            padding: 0.75rem 1.5rem;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+        }
+        
+        .tab.active {
+            border-bottom-color: var(--primary);
+            color: var(--primary);
+            font-weight: 600;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .log-entry {
+            font-family: 'Courier New', monospace;
+            font-size: 0.875rem;
+            padding: 0.25rem 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        
+        .log-error { color: var(--danger); }
+        .log-warning { color: var(--warning); }
+        .log-info { color: var(--primary); }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-brand">🛡️ Central Intelligence System</div>
+        <div class="nav-links">
+            <a href="#" class="nav-link active" onclick="showTab('dashboard')">Dashboard</a>
+            <a href="#" class="nav-link" onclick="showTab('agents')">Agents</a>
+            <a href="#" class="nav-link" onclick="showTab('incidents')">Incidents</a>
+            <a href="#" class="nav-link" onclick="showTab('logs')">Logs</a>
+            <a href="#" class="nav-link" onclick="showTab('commands')">Commands</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <!-- Dashboard Tab -->
+        <div id="dashboard" class="tab-content active">
+            <h1>System Overview</h1>
+            
+            <div class="dashboard-grid">
+                <div class="card">
+                    <div class="card-header">System Health</div>
+                    <div id="system-health" class="stat-grid">
+                        <!-- Dynamic content -->
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">Threat Overview</div>
+                    <div id="threat-overview" class="stat-grid">
+                        <!-- Dynamic content -->
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">Network Topology</div>
+                    <div id="network-topology" class="stat-grid">
+                        <!-- Dynamic content -->
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">Performance Metrics</div>
+                    <canvas id="metrics-chart" width="400" height="200"></canvas>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    Recent Incidents
+                    <button class="btn btn-primary" onclick="showTab('incidents')">View All</button>
+                </div>
+                <div id="recent-incidents">
+                    <!-- Dynamic content -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Agents Tab -->
+        <div id="agents" class="tab-content">
+            <div class="card-header">
+                Managed Agents
+                <button class="btn btn-primary" onclick="refreshAgents()">Refresh</button>
+            </div>
+            <div id="agents-list">
+                <!-- Dynamic content -->
+            </div>
+        </div>
+
+        <!-- Incidents Tab -->
+        <div id="incidents" class="tab-content">
+            <div class="card-header">
+                Security Incidents
+                <div>
+                    <select id="incident-filter" onchange="loadIncidents()">
+                        <option value="24">Last 24h</option>
+                        <option value="168">Last 7 days</option>
+                        <option value="720">Last 30 days</option>
+                    </select>
+                    <button class="btn btn-primary" onclick="loadIncidents()">Refresh</button>
+                </div>
+            </div>
+            <div id="incidents-list">
+                <!-- Dynamic content -->
+            </div>
+        </div>
+
+        <!-- Logs Tab -->
+        <div id="logs" class="tab-content">
+            <div class="card-header">
+                System Logs
+                <div>
+                    <select id="log-level">
+                        <option value="">All Levels</option>
+                        <option value="ERROR">Errors</option>
+                        <option value="WARNING">Warnings</option>
+                        <option value="INFO">Info</option>
+                    </select>
+                    <button class="btn btn-primary" onclick="loadLogs()">Refresh Logs</button>
+                </div>
+            </div>
+            <div class="card">
+                <div id="logs-content" style="max-height: 600px; overflow-y: auto;">
+                    <!-- Dynamic content -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Commands Tab -->
+        <div id="commands" class="tab-content">
+            <div class="card">
+                <div class="card-header">Send Commands</div>
+                <div>
+                    <h3>Select Agents</h3>
+                    <div id="agent-selection">
+                        <!-- Dynamic agent checkboxes -->
+                    </div>
+                    
+                    <h3>Commands</h3>
+                    <select id="command-select" multiple style="width: 100%; height: 150px;">
+                        <option value="isolate_network">Isolate Network</option>
+                        <option value="enable_enhanced_monitoring">Enable Enhanced Monitoring</option>
+                        <option value="block_p2p_communications">Block P2P Communications</option>
+                        <option value="trigger_emergency_backup">Trigger Emergency Backup</option>
+                        <option value="lock_sensitive_files">Lock Sensitive Files</option>
+                        <option value="enable_zero_trust">Enable Zero Trust Policies</option>
+                        <option value="scan_for_malware">Scan for Malware</option>
+                        <option value="collect_forensic_data">Collect Forensic Data</option>
+                    </select>
+                    
+                    <button class="btn btn-primary" onclick="sendCommands()" style="margin-top: 1rem;">
+                        Send Commands to Selected Agents
+                    </button>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">Emergency Protocols</div>
+                <div>
+                    <button class="btn btn-danger" onclick="activateEmergencyProtocol()">
+                        🚨 Activate Network-Wide Emergency Protocol
+                    </button>
+                    <p style="margin-top: 0.5rem; color: var(--gray); font-size: 0.875rem;">
+                        This will trigger aggressive containment measures across all connected agents.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Incident Detail Modal -->
+    <div id="incident-modal" class="modal">
+        <div class="modal-content">
+            <div class="card-header">
+                Incident Details
+                <button onclick="closeModal('incident-modal')" style="background: none; border: none; font-size: 1.5rem; cursor: pointer;">×</button>
+            </div>
+            <div id="incident-detail-content">
+                <!-- Dynamic content -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global state
+        let currentTab = 'dashboard';
+        let agents = [];
+        let incidents = [];
+
+        // Tab management
+        function showTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.classList.remove('active');
+            });
+            
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+            currentTab = tabName;
+            
+            // Load tab-specific data
+            switch(tabName) {
+                case 'dashboard':
+                    loadDashboard();
+                    break;
+                case 'agents':
+                    loadAgents();
+                    break;
+                case 'incidents':
+                    loadIncidents();
+                    break;
+                case 'logs':
+                    loadLogs();
+                    break;
+                case 'commands':
+                    loadCommands();
+                    break;
+            }
+        }
+
+        // API calls
+        async function apiCall(endpoint, options = {}) {
+            try {
+                const response = await fetch(`/console${endpoint}`, options);
+                const data = await response.json();
+                return data;
+            } catch (error) {
+                console.error('API call failed:', error);
+                showNotification('API call failed: ' + error.message, 'error');
+                return null;
+            }
+        }
+
+        // Dashboard functions
+        async function loadDashboard() {
+            const data = await apiCall('/api/dashboard/overview');
+            if (!data) return;
+
+            // System Health
+            document.getElementById('system-health').innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-value success">✓</div>
+                    <div class="stat-label">Status</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${data.topology.online_agents}/${data.topology.total_agents}</div>
+                    <div class="stat-label">Agents Online</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${data.active_incidents.emergencies}</div>
+                    <div class="stat-label">Active Emergencies</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${data.metrics.containment_success_rate * 100}%</div>
+                    <div class="stat-label">Containment Rate</div>
+                </div>
+            `;
+
+            // Threat Overview
+            document.getElementById('threat-overview').innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-value critical">${data.active_incidents.critical}</div>
+                    <div class="stat-label">Critical Incidents</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${data.active_incidents.total}</div>
+                    <div class="stat-label">Total Incidents</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value warning">${data.metrics.false_positives}</div>
+                    <div class="stat-label">False Positives</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${Math.round(data.metrics.average_response_time_seconds)}s</div>
+                    <div class="stat-label">Avg Response Time</div>
+                </div>
+            `;
+
+            // Load recent incidents
+            loadRecentIncidents();
+        }
+
+        async function loadRecentIncidents() {
+            const data = await apiCall('/api/incidents?hours=24&per_page=5');
+            if (!data) return;
+
+            const html = data.incidents.map(incident => `
+                <div class="table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Time</th>
+                                <th>Agent</th>
+                                <th>Threat</th>
+                                <th>Level</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${data.incidents.map(incident => `
+                                <tr>
+                                    <td>${new Date(incident.timestamp).toLocaleString()}</td>
+                                    <td>${incident.agent_id}</td>
+                                    <td>${incident.malware_process || 'Unknown'}</td>
+                                    <td><span class="badge badge-${incident.threat_level}">${incident.threat_level}</span></td>
+                                    <td>
+                                        <button class="btn btn-primary" onclick="viewIncident('${incident.incident_id}')">View</button>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `).join('');
+
+            document.getElementById('recent-incidents').innerHTML = html;
+        }
+
+        // Agents functions
+        async function loadAgents() {
+            const data = await apiCall('/api/agents');
+            if (!data) return;
+
+            agents = data.agents;
+            
+            const html = `
+                <div class="table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Agent ID</th>
+                                <th>Hostname</th>
+                                <th>IP Address</th>
+                                <th>Status</th>
+                                <th>Last Seen</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${agents.map(agent => `
+                                <tr>
+                                    <td>${agent.agent_id}</td>
+                                    <td>${agent.hostname}</td>
+                                    <td>${agent.ip_address}</td>
+                                    <td>
+                                        <span class="badge ${agent.connected ? 'badge-low' : 'badge-warning'}">
+                                            ${agent.connected ? 'Online' : 'Offline'}
+                                        </span>
+                                    </td>
+                                    <td>${new Date(agent.last_seen).toLocaleString()}</td>
+                                    <td>
+                                        <button class="btn btn-primary" onclick="sendCommandToAgent('${agent.agent_id}')">Command</button>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+
+            document.getElementById('agents-list').innerHTML = html;
+        }
+
+        // Incidents functions
+        async function loadIncidents() {
+            const hours = document.getElementById('incident-filter').value;
+            const data = await apiCall(`/api/incidents?hours=${hours}`);
+            if (!data) return;
+
+            incidents = data.incidents;
+            
+            const html = `
+                <div class="table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Incident ID</th>
+                                <th>Time</th>
+                                <th>Agent</th>
+                                <th>Threat</th>
+                                <th>Level</th>
+                                <th>Confidence</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${incidents.map(incident => `
+                                <tr>
+                                    <td>${incident.incident_id}</td>
+                                    <td>${new Date(incident.timestamp).toLocaleString()}</td>
+                                    <td>${incident.agent_id}</td>
+                                    <td>${incident.malware_process || 'Unknown'}</td>
+                                    <td><span class="badge badge-${incident.threat_level}">${incident.threat_level}</span></td>
+                                    <td>${Math.round(incident.detection_confidence * 100)}%</td>
+                                    <td>
+                                        <button class="btn btn-primary" onclick="viewIncident('${incident.incident_id}')">Details</button>
+                                        <button class="btn btn-warning" onclick="viewLLMAnalysis('${incident.incident_id}')">LLM Analysis</button>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+
+            document.getElementById('incidents-list').innerHTML = html;
+        }
+
+        async function viewIncident(incidentId) {
+            const data = await apiCall(`/api/incidents/${incidentId}`);
+            if (!data) return;
+
+            document.getElementById('incident-detail-content').innerHTML = `
+                <h3>Incident: ${data.incident_id}</h3>
+                <p><strong>Agent:</strong> ${data.agent_id}</p>
+                <p><strong>Threat Level:</strong> <span class="badge badge-${data.threat_level}">${data.threat_level}</span></p>
+                <p><strong>Malware Process:</strong> ${data.malware_process || 'Unknown'}</p>
+                <p><strong>Detection Confidence:</strong> ${Math.round(data.detection_confidence * 100)}%</p>
+                <p><strong>Timestamp:</strong> ${new Date(data.timestamp).toLocaleString()}</p>
+                
+                <h4>Actions Taken</h4>
+                <ul>
+                    ${data.actions_taken.map(action => `<li>${action}</li>`).join('')}
+                </ul>
+                
+                <h4>Forensic Data</h4>
+                <pre>${JSON.stringify(data.forensic_data, null, 2)}</pre>
+            `;
+
+            document.getElementById('incident-modal').style.display = 'block';
+        }
+
+        async function viewLLMAnalysis(incidentId) {
+            const data = await apiCall(`/api/llm-analysis/${incidentId}`);
+            if (!data) return;
+
+            document.getElementById('incident-detail-content').innerHTML = `
+                <h3>LLM Threat Analysis</h3>
+                <p><strong>Attack Classification:</strong> ${data.attack_classification}</p>
+                <p><strong>Propagation Method:</strong> ${data.propagation_method}</p>
+                <p><strong>Compromise Radius:</strong> ${data.estimated_compromise_radius}</p>
+                <p><strong>Business Impact:</strong> ${data.business_impact}</p>
+                <p><strong>Confidence Score:</strong> ${Math.round(data.confidence_score * 100)}%</p>
+                <p><strong>Recommended Response:</strong> ${data.recommended_network_response}</p>
+                
+                <h4>Predicted Next Targets</h4>
+                <ul>
+                    ${data.predicted_next_targets.map(target => `<li>${target}</li>`).join('')}
+                </ul>
+            `;
+
+            document.getElementById('incident-modal').style.display = 'block';
+        }
+
+        // Logs functions
+        async function loadLogs() {
+            const level = document.getElementById('log-level').value;
+            const data = await apiCall(`/api/logs?level=${level}&lines=200`);
+            if (!data) return;
+
+            const html = data.logs.map(log => {
+                let className = 'log-info';
+                if (log.includes('ERROR')) className = 'log-error';
+                else if (log.includes('WARNING')) className = 'log-warning';
+                
+                return `<div class="log-entry ${className}">${log}</div>`;
+            }).join('');
+
+            document.getElementById('logs-content').innerHTML = html;
+        }
+
+        // Commands functions
+        async function loadCommands() {
+            // Load agents for selection
+            const data = await apiCall('/api/agents');
+            if (!data) return;
+
+            const agentCheckboxes = data.agents.map(agent => `
+                <label style="display: block; margin: 0.5rem 0;">
+                    <input type="checkbox" name="agent" value="${agent.agent_id}" 
+                           ${agent.connected ? '' : 'disabled'}>
+                    ${agent.agent_id} (${agent.hostname})
+                    ${agent.connected ? '🟢' : '🔴'}
+                </label>
+            `).join('');
+
+            document.getElementById('agent-selection').innerHTML = agentCheckboxes;
+        }
+
+        async function sendCommands() {
+            const selectedAgents = Array.from(document.querySelectorAll('input[name="agent"]:checked'))
+                .map(cb => cb.value);
+            const selectedCommands = Array.from(document.getElementById('command-select').selectedOptions)
+                .map(opt => opt.value);
+
+            if (selectedAgents.length === 0 || selectedCommands.length === 0) {
+                showNotification('Please select at least one agent and one command', 'warning');
+                return;
+            }
+
+            const result = await apiCall('/api/commands/send', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    agent_ids: selectedAgents,
+                    commands: selectedCommands
+                })
+            });
+
+            if (result) {
+                showNotification(`Commands sent to ${selectedAgents.length} agents`, 'success');
+            }
+        }
+
+        async function activateEmergencyProtocol() {
+            if (!confirm('🚨 ACTIVATE NETWORK-WIDE EMERGENCY PROTOCOL?\n\nThis will trigger aggressive containment measures across ALL connected agents. Continue?')) {
+                return;
+            }
+
+            const result = await apiCall('/api/emergency/activate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    incident_id: 'MANUAL_EMERGENCY_' + Date.now(),
+                    scope: 'network_wide'
+                })
+            });
+
+            if (result) {
+                showNotification('Emergency protocol activated across network', 'success');
+            }
+        }
+
+        // Utility functions
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        function showNotification(message, type = 'info') {
+            // Simple notification implementation
+            alert(`${type.toUpperCase()}: ${message}`);
+        }
+
+        function refreshAgents() {
+            loadAgents();
+            showNotification('Agents list refreshed', 'success');
+        }
+
+        // Initialize dashboard on load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadDashboard();
+            
+            // Auto-refresh dashboard every 30 seconds
+            setInterval(() => {
+                if (currentTab === 'dashboard') {
+                    loadDashboard();
+                }
+            }, 30000);
+        });
+    </script>
+</body>
+</html>

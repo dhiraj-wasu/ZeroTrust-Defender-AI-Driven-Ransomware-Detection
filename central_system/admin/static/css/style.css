@@ -1,0 +1,161 @@
+body {
+    background-color: #f8f9fc;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.card {
+    border: none;
+    border-radius: 0.35rem;
+    box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+    margin-bottom: 1.5rem;
+}
+
+.card-header {
+    background-color: #f8f9fc;
+    border-bottom: 1px solid #e3e6f0;
+    padding: 0.75rem 1.25rem;
+}
+
+.border-left-primary {
+    border-left: 0.25rem solid #4e73df !important;
+}
+
+.border-left-success {
+    border-left: 0.25rem solid #1cc88a !important;
+}
+
+.border-left-warning {
+    border-left: 0.25rem solid #f6c23e !important;
+}
+
+.border-left-danger {
+    border-left: 0.25rem solid #e74a3b !important;
+}
+
+/* Incident severity colors */
+.incident-critical {
+    background-color: #f8d7da;
+    border-left: 4px solid #dc3545;
+}
+
+.incident-high {
+    background-color: #fff3cd;
+    border-left: 4px solid #ffc107;
+}
+
+.incident-medium {
+    background-color: #d1ecf1;
+    border-left: 4px solid #17a2b8;
+}
+
+/* Agent status indicators */
+.agent-online {
+    color: #28a745;
+}
+
+.agent-offline {
+    color: #6c757d;
+}
+
+.agent-quarantined {
+    color: #dc3545;
+}
+
+/* Forensic case styling */
+.forensic-case {
+    border-left: 4px solid #6f42c1;
+}
+
+/* Real-time pulse animation */
+.pulse {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+
+/* Table enhancements */
+.table th {
+    border-top: none;
+    font-weight: 600;
+    color: #6e707e;
+    background-color: #f8f9fc;
+}
+
+.table-hover tbody tr:hover {
+    background-color: rgba(0, 0, 0, 0.075);
+}
+
+/* Navigation active state */
+.navbar-dark .navbar-nav .nav-link.active {
+    color: #fff;
+    font-weight: 600;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 0.25rem;
+}
+
+/* Progress bar customization */
+.progress {
+    height: 20px;
+    background-color: #eaecf4;
+}
+
+.progress-bar {
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+/* Badge enhancements */
+.badge {
+    font-size: 0.75em;
+    font-weight: 600;
+}
+
+/* Button enhancements */
+.btn {
+    border-radius: 0.35rem;
+    font-weight: 600;
+}
+
+/* Modal enhancements */
+.modal-header {
+    background-color: #f8f9fc;
+    border-bottom: 1px solid #e3e6f0;
+}
+
+/* Footer styling */
+footer {
+    margin-top: 2rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .card-body {
+        padding: 1rem;
+    }
+    
+    .table-responsive {
+        font-size: 0.875rem;
+    }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
