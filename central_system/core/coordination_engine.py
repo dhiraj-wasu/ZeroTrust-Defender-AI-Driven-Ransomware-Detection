@@ -256,24 +256,50 @@ class CoordinationEngine:
         if network_commands and risk_level in ['CRITICAL', 'HIGH']:
             await self._execute_network_wide_commands(alert, network_commands)
 
+    # async def _activate_emergency_protocol(self, alert: ThreatAlert, response_plan: Dict[str, Any], risk_assessment: Dict[str, Any]):
+    #     """Activate emergency defense protocol"""
+    #     incident_id = getattr(alert, 'incident_id', 'unknown')
+    #     emergency_data = {
+    #         'incident_id': incident_id,
+    #         'threat_level': alert.threat_level.value,
+    #         'affected_agent': alert.agent_id,
+    #         'response_level': response_plan['response_level'],
+    #         'activated_at': datetime.now().isoformat(),
+    #         'duration': response_plan['duration'],
+    #         'required_actions': response_plan.get('network_wide_commands', [])
+    #     }
+        
+    #     self.emergency_modes[incident_id] = emergency_data
+        
+    #     # Broadcast emergency notification
+    #     await self.command_dispatcher.broadcast_network_incident(emergency_data)
+    #     self.logger.warning(f"EMERGENCY PROTOCOL ACTIVATED for incident {incident_id}")
     async def _activate_emergency_protocol(self, alert: ThreatAlert, response_plan: Dict[str, Any], risk_assessment: Dict[str, Any]):
-        """Activate emergency defense protocol"""
+        """Activate emergency defense protocol - UPDATED with IP address"""
         incident_id = getattr(alert, 'incident_id', 'unknown')
+    
+    # Get agent details including IP address
+        agent_details = await self.agent_manager.get_agent_details(alert.agent_id)
+        agent_ip = agent_details.get('ip_address', 'unknown') if agent_details else 'unknown'
+    
         emergency_data = {
-            'incident_id': incident_id,
-            'threat_level': alert.threat_level.value,
-            'affected_agent': alert.agent_id,
-            'response_level': response_plan['response_level'],
-            'activated_at': datetime.now().isoformat(),
-            'duration': response_plan['duration'],
-            'required_actions': response_plan.get('network_wide_commands', [])
+        'incident_id': incident_id,
+        'threat_level': alert.threat_level.value,
+        'affected_agent': alert.agent_id,
+        'affected_agent_ip': agent_ip,  # ✅ ADD IP ADDRESS
+        'malware_process': getattr(alert, 'malware_process', 'unknown'),
+        'detection_confidence': getattr(alert, 'detection_confidence', 0.0),
+        'response_level': response_plan['response_level'],
+        'activated_at': datetime.now().isoformat(),
+        'duration': response_plan['duration'],
+        'required_actions': response_plan.get('network_wide_commands', [])
         }
-        
+    
         self.emergency_modes[incident_id] = emergency_data
-        
-        # Broadcast emergency notification
+    
+    # Broadcast emergency notification
         await self.command_dispatcher.broadcast_network_incident(emergency_data)
-        self.logger.warning(f"EMERGENCY PROTOCOL ACTIVATED for incident {incident_id}")
+        self.logger.warning(f"EMERGENCY PROTOCOL ACTIVATED for incident {incident_id} - Agent: {alert.agent_id} ({agent_ip})")
 
     async def _execute_network_wide_commands(self, alert: ThreatAlert, commands: List[str]):
         """Execute network-wide commands"""

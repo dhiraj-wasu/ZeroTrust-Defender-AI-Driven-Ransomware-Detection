@@ -1,0 +1,20 @@
+{
+  "processes": [
+    "winlogon.exe",
+    "lsass.exe",
+    "dwm.exe",
+    "explorer.exe",
+    "System",
+    "csrss.exe",
+    "smss.exe",
+    "svchost.exe",
+    "services.exe",
+    "ctfmon.exe",
+    "taskhost.exe"
+  ],
+  "paths": [
+    "C:\\Program Files\\",
+    "C:\\ProgramData\\",
+    "C:\\Windows\\"
+  ]
+}

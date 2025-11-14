@@ -16,7 +16,7 @@ import random
 class LocalTestAgent:
     def __init__(self):
         self.central_host = "localhost"  # Connect to localhost
-        self.central_port = 8765
+        self.central_port = 8080
         self.agent_id = f"LOCAL-AGENT-{platform.node()}-{uuid.uuid4().hex[:8]}"
         self.websocket = None
         self.is_connected = False

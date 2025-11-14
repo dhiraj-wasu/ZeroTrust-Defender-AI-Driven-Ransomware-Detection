@@ -1,0 +1,28 @@
+{
+  "backups": [
+    {
+      "name": "initial_backup_20251114_152017",
+      "path": "./demo_files/backup_location\\initial_backup_20251114_152017.zip",
+      "type": "initial",
+      "file_count": 3,
+      "timestamp": "2025-11-14T15:20:17.268950",
+      "size": 427
+    },
+    {
+      "name": "emergency_backup_20251114_152025",
+      "path": "./demo_files/backup_location\\emergency_backup_20251114_152025.zip",
+      "type": "emergency",
+      "file_count": 2,
+      "timestamp": "2025-11-14T15:20:25.276124",
+      "size": 292
+    },
+    {
+      "name": "emergency_backup_20251114_152053",
+      "path": "./demo_files/backup_location\\emergency_backup_20251114_152053.zip",
+      "type": "emergency",
+      "file_count": 2,
+      "timestamp": "2025-11-14T15:20:53.483479",
+      "size": 292
+    }
+  ]
+}

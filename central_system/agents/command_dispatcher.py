@@ -25,27 +25,55 @@ class CommandDispatcher:
         
         self.logger.info(f"Dispatched {len(commands)} commands to agent {agent_id}")
 
+    # async def broadcast_network_incident(self, incident_data: Dict[str, Any]):
+    #     """Broadcast network-wide incident notification"""
+    #     broadcast_msg = BroadcastMessage(
+    #         message_type="NETWORK_SECURITY_INCIDENT",
+    #         incident_id=incident_data['incident_id'],
+    #         threat_level=ThreatLevel(incident_data['threat_level']),
+    #         affected_agent=incident_data['affected_agent'],
+    #         # affected_agent_ip=incident_data['affected_agent_ip'],
+    #         required_actions=incident_data['required_actions'],
+    #         duration=incident_data.get('duration', 'emergency_1hour'),
+    #         updates_every=incident_data.get('updates_every', '5_minutes')
+    #     )
+        
+    #     message = {
+    #         'type': 'NETWORK_INCIDENT_BROADCAST',
+    #         'payload': broadcast_msg.dict(),
+    #         'timestamp': datetime.now().isoformat()
+    #     }
+        
+    #     await self.agent_manager.broadcast_to_agents(json.dumps(message))
+    #     self.logger.info(f"Broadcast network incident: {incident_data['incident_id']}")
     async def broadcast_network_incident(self, incident_data: Dict[str, Any]):
-        """Broadcast network-wide incident notification"""
-        broadcast_msg = BroadcastMessage(
-            message_type="NETWORK_SECURITY_INCIDENT",
-            incident_id=incident_data['incident_id'],
-            threat_level=ThreatLevel(incident_data['threat_level']),
-            affected_agent=incident_data['affected_agent'],
-            # affected_agent_ip=incident_data['affected_agent_ip'],
-            required_actions=incident_data['required_actions'],
-            duration=incident_data.get('duration', 'emergency_1hour'),
-            updates_every=incident_data.get('updates_every', '5_minutes')
-        )
-        
-        message = {
-            'type': 'NETWORK_INCIDENT_BROADCAST',
-            'payload': broadcast_msg.dict(),
-            'timestamp': datetime.now().isoformat()
+       """Broadcast network-wide incident notification - UPDATED with IP address"""
+    
+    # Get agent IP address (fallback to 'unknown' if not available)
+       agent_ip = incident_data.get('affected_agent_ip', 'unknown')
+    
+       broadcast_msg = BroadcastMessage(
+        message_type="NETWORK_SECURITY_INCIDENT",
+        incident_id=incident_data['incident_id'],
+        threat_level=ThreatLevel(incident_data['threat_level']),
+        affected_agent=incident_data['affected_agent'],
+        affected_agent_ip=agent_ip,  # ✅ ADD IP ADDRESS HERE
+        malware_process=incident_data.get('malware_process', 'unknown'),
+        detection_confidence=incident_data.get('detection_confidence', 0.0),
+        required_actions=incident_data['required_actions'],
+        duration=incident_data.get('duration', 'emergency_1hour'),
+        updates_every=incident_data.get('updates_every', '5_minutes')
+       )
+    
+       message = {
+        'type': 'NETWORK_INCIDENT_BROADCAST',
+        'payload': broadcast_msg.dict(),
+        'timestamp': datetime.now().isoformat()
         }
-        
-        await self.agent_manager.broadcast_to_agents(json.dumps(message))
-        self.logger.info(f"Broadcast network incident: {incident_data['incident_id']}")
+    
+    #    await self.agent_manager.broadcast_to_agents(json.dumps(message))
+       await self.agent_manager.broadcast_to_agents(message)
+       self.logger.info(f"Broadcast network incident: {incident_data['incident_id']} - Agent: {incident_data['affected_agent']} ({agent_ip})")
 
     async def execute_emergency_protocol(self, incident_response: Dict[str, Any]):
         """Execute emergency defense protocol"""

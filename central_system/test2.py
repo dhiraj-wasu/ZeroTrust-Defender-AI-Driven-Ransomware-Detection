@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Test Agent for Central Intelligence System - Fixed Double JSON Encoding
+Test Agent for Central Intelligence System - Fixed Port and IP Display
 """
 
 import asyncio
@@ -10,7 +10,7 @@ import uuid
 from datetime import datetime
 
 class TestAgent:
-    def __init__(self, agent_id="PC-TEST-001", central_server="ws://localhost:8765"):
+    def __init__(self, agent_id="PC-TEST-001", central_server="ws://localhost:8080"):  # ✅ Fixed port
         self.agent_id = agent_id
         self.central_server = central_server
         self.websocket = None
@@ -56,7 +56,7 @@ class TestAgent:
             "payload": {
                 "agent_id": self.agent_id,
                 "hostname": "TEST-PC-001",
-                "ip_address": "192.168.1.100",
+                "ip_address": "192.168.1.100",  # ✅ This IP will be used in broadcasts
                 "os_type": "Windows 10",
                 "department": "Finance",
                 "critical_assets": ["financial_data", "customer_records", "transaction_database"],
@@ -233,7 +233,7 @@ class TestAgent:
         print("="*60)
 
     def _parse_broadcast_message(self, msg_data):
-        """Parse network broadcast message"""
+        """Parse network broadcast message - UPDATED with IP address display"""
         payload = msg_data.get('payload', {})
         if not payload:  # Handle case where data is directly in root
             payload = msg_data
@@ -242,6 +242,9 @@ class TestAgent:
         print(f"   🆔 Incident: {payload.get('incident_id')}")
         print(f"   🔴 Threat Level: {payload.get('threat_level')}")
         print(f"   🖥️  Affected Agent: {payload.get('affected_agent')}")
+        print(f"   🌐 Agent IP: {payload.get('affected_agent_ip', 'unknown')}")  # ✅ ADDED IP DISPLAY
+        print(f"   🦠 Malware: {payload.get('malware_process', 'unknown')}")
+        print(f"   📊 Confidence: {payload.get('detection_confidence', 0) * 100:.1f}%")
         print(f"   🚨 Response Level: {payload.get('response_level', 'AGGRESSIVE_CONTAINMENT')}")
         print(f"   ⏰ Duration: {payload.get('duration', 'emergency_1hour')}")
         print(f"   📡 Updates: {payload.get('updates_every', '5_minutes')}")

@@ -1,0 +1,23 @@
+{
+  "emergency": {
+    "block_new_processes": true,
+    "block_network_connections": true,
+    "block_file_modifications": true,
+    "allow_whitelisted_only": true,
+    "monitor_system_calls": true
+  },
+  "enterprise": {
+    "block_new_processes": false,
+    "block_network_connections": false,
+    "block_file_modifications": false,
+    "allow_whitelisted_only": false,
+    "monitor_system_calls": true,
+    "log_suspicious_activity": true
+  },
+  "enhanced_monitoring": {
+    "monitor_process_creation": true,
+    "monitor_file_operations": true,
+    "monitor_network_activity": true,
+    "alert_on_suspicious_behavior": true
+  }
+}
